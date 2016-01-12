@@ -10,7 +10,7 @@
   },
   "scripts": {
     "api": "place-my-order-api --port 7070",
-    "test": "testee src/test.html --browsers ie --reporter Spec",
+    "test": "testee src/test.html --browsers firefox --reporter Spec",
     "start": "can-serve --proxy http://localhost:7070 --port 8080",
     "develop": "can-serve --develop --proxy http://localhost:7070 --port 8080",
     "document": "documentjs",
