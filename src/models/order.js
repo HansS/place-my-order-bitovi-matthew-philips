@@ -4,7 +4,7 @@ import List from 'can/list/';
 import Map from 'can/map/';
 import 'can/map/define/';
 import io from 'steal-socket.io';
-
+import baseUrl from '../service-base-url';
 
 const ItemsList = List.extend({}, {
   has: function(item) {
@@ -47,7 +47,7 @@ let Order = Map.extend({
 });
 
 export const connection = superMap({
-  url: '/api/orders',
+  url: baseUrl + '/api/orders',
   idProp: '_id',
   Map: Order,
   List: Order.List,

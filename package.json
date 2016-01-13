@@ -16,7 +16,7 @@
     "document": "documentjs",
     "build": "node build"
   },
-  "main": "place-my-order/index.stache!done-autorender",
+  "main": "production.html",
   "files": [
     "src"
   ],
@@ -36,7 +36,12 @@
       "generator-donejs",
       "donejs-cli"
     ],
-    "npmAlgorithm": "flat"
+    "npmAlgorithm": "flat",
+    "envs": {
+        "server-production": {
+        "baseURL": "https://matthew-pmo.firebaseapp.com/"
+        }
+    }
   },
   "dependencies": {
     "bit-tabs": "^0.2.0",
@@ -51,6 +56,7 @@
     "place-my-order-api": "^0.4.4",
     "place-my-order-assets": "^0.1.6",
     "steal": "^0.13.0",
+    "steal-platform": "0.0.4",
     "steal-socket.io": "^1.0.1"
   },
   "devDependencies": {
@@ -59,8 +65,36 @@
     "donejs-cli": "^0.6.3",
     "donejs-deploy": "^0.3.1",
     "funcunit": "^3.0.0",
+    "steal-cordova": "^0.1.3",
+    "steal-nw": "^0.1.4",
     "steal-qunit": "^0.1.1",
     "steal-tools": "^0.13.2",
     "testee": "^0.2.4"
+  },
+  "window": {
+    "width": 1000,
+    "height": 600,
+    "toolbar": false
+  },
+  "donejs": {
+  "deploy": {
+    "root": "dist",
+    "services": {
+      "production": {
+        "type": "firebase",
+        "config": {
+          "firebase": "matthew-pmo",
+          "public": "./dist",
+          "headers": [{
+            "source": "/**",
+            "headers": [{
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }]
+          }]
+        }
+      }
+    }
   }
+}
 }
