@@ -6,7 +6,8 @@ var buildPromise = stealTools.build({
   bundleAssets: {
     infer: false,
     glob: "node_modules/place-my-order-assets/images/**/*"
-  }
+  },
+  minify: false
 });
 var cordovaOptions = {
   buildDir: "./build/cordova",

@@ -1,32 +1,989 @@
 /*can-simple-dom@0.2.23#simple-dom/document/node*/
-define("can-simple-dom@0.2.23#simple-dom/document/node",["exports","module"],function(i,t){"use strict";function n(i,t,n,e){this.nodeType=i,this.nodeName=t,this.nodeValue=n,this.ownerDocument=e,this.childNodes=new l(this),this.parentNode=null,this.previousSibling=null,this.nextSibling=null,this.firstChild=null,this.lastChild=null}function e(i,t,n,e){if(i.firstChild){var l=i.firstChild,o=l,r=l;for(l.previousSibling=n,n?n.nextSibling=l:t.firstChild=l;r;)r.parentNode=t,o=r,r=r.nextSibling;o.nextSibling=e,e?e.previousSibling=o:t.lastChild=o,i.firstChild=null,i.lastChild=null}}function l(i){this.node=i}n.prototype._cloneNode=function(){return new n(this.nodeType,this.nodeName,this.nodeValue,this.ownerDocument)},n.prototype.cloneNode=function(i){var t=this._cloneNode();if(i)for(var n=this.firstChild,e=n;e;)e=n.nextSibling,t.appendChild(n.cloneNode(!0)),n=e;return t},n.prototype.appendChild=function(i){if(i.nodeType===n.DOCUMENT_FRAGMENT_NODE)return e(i,this,this.lastChild,null),i;i.parentNode&&i.parentNode.removeChild(i),i.parentNode=this;var t=this.lastChild;return null===t?(this.firstChild=i,this.lastChild=i):(i.previousSibling=t,t.nextSibling=i,this.lastChild=i),i};var o=n.prototype.insertBefore=function(i,t){if(null==t)return this.appendChild(i);if(i.nodeType===n.DOCUMENT_FRAGMENT_NODE)return e(i,this,t?t.previousSibling:null,t),i;i.parentNode&&i.parentNode.removeChild(i),i.parentNode=this;var l=t.previousSibling;return l&&(l.nextSibling=i,i.previousSibling=l),t.previousSibling=i,i.nextSibling=t,this.firstChild===t&&(this.firstChild=i),i},r=n.prototype.removeChild=function(i){this.firstChild===i&&(this.firstChild=i.nextSibling),this.lastChild===i&&(this.lastChild=i.previousSibling),i.previousSibling&&(i.previousSibling.nextSibling=i.nextSibling),i.nextSibling&&(i.nextSibling.previousSibling=i.previousSibling),i.parentNode=null,i.nextSibling=null,i.previousSibling=null};n.prototype.replaceChild=function(i,t){return o.call(this,i,t),r.call(this,t),t},n.prototype.addEventListener=function(){},n.prototype.removeEventListner=function(){},n.ELEMENT_NODE=1,n.ATTRIBUTE_NODE=2,n.TEXT_NODE=3,n.CDATA_SECTION_NODE=4,n.ENTITY_REFERENCE_NODE=5,n.ENTITY_NODE=6,n.PROCESSING_INSTRUCTION_NODE=7,n.COMMENT_NODE=8,n.DOCUMENT_NODE=9,n.DOCUMENT_TYPE_NODE=10,n.DOCUMENT_FRAGMENT_NODE=11,n.NOTATION_NODE=12,l.prototype.item=function(i){for(var t=this.node.firstChild,n=0;t&&i!==n;n++)t=t.nextSibling;return t},t.exports=n});
+define('can-simple-dom@0.2.23#simple-dom/document/node', [
+    'exports',
+    'module'
+], function (exports, module) {
+    'use strict';
+    function Node(nodeType, nodeName, nodeValue, ownerDocument) {
+        this.nodeType = nodeType;
+        this.nodeName = nodeName;
+        this.nodeValue = nodeValue;
+        this.ownerDocument = ownerDocument;
+        this.childNodes = new ChildNodes(this);
+        this.parentNode = null;
+        this.previousSibling = null;
+        this.nextSibling = null;
+        this.firstChild = null;
+        this.lastChild = null;
+    }
+    Node.prototype._cloneNode = function () {
+        return new Node(this.nodeType, this.nodeName, this.nodeValue, this.ownerDocument);
+    };
+    Node.prototype.cloneNode = function (deep) {
+        var node = this._cloneNode();
+        if (deep) {
+            var child = this.firstChild, nextChild = child;
+            while (nextChild) {
+                nextChild = child.nextSibling;
+                node.appendChild(child.cloneNode(true));
+                child = nextChild;
+            }
+        }
+        return node;
+    };
+    Node.prototype.appendChild = function (node) {
+        if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            insertFragment(node, this, this.lastChild, null);
+            return node;
+        }
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
+        node.parentNode = this;
+        var refNode = this.lastChild;
+        if (refNode === null) {
+            this.firstChild = node;
+            this.lastChild = node;
+        } else {
+            node.previousSibling = refNode;
+            refNode.nextSibling = node;
+            this.lastChild = node;
+        }
+        return node;
+    };
+    function insertFragment(fragment, newParent, before, after) {
+        if (!fragment.firstChild) {
+            return;
+        }
+        var firstChild = fragment.firstChild;
+        var lastChild = firstChild;
+        var node = firstChild;
+        firstChild.previousSibling = before;
+        if (before) {
+            before.nextSibling = firstChild;
+        } else {
+            newParent.firstChild = firstChild;
+        }
+        while (node) {
+            node.parentNode = newParent;
+            lastChild = node;
+            node = node.nextSibling;
+        }
+        lastChild.nextSibling = after;
+        if (after) {
+            after.previousSibling = lastChild;
+        } else {
+            newParent.lastChild = lastChild;
+        }
+        fragment.firstChild = null;
+        fragment.lastChild = null;
+    }
+    var nodeInsertBefore = Node.prototype.insertBefore = function (node, refNode) {
+        if (refNode == null) {
+            return this.appendChild(node);
+        }
+        if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            insertFragment(node, this, refNode ? refNode.previousSibling : null, refNode);
+            return node;
+        }
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
+        node.parentNode = this;
+        var previousSibling = refNode.previousSibling;
+        if (previousSibling) {
+            previousSibling.nextSibling = node;
+            node.previousSibling = previousSibling;
+        }
+        refNode.previousSibling = node;
+        node.nextSibling = refNode;
+        if (this.firstChild === refNode) {
+            this.firstChild = node;
+        }
+        return node;
+    };
+    var nodeRemoveChild = Node.prototype.removeChild = function (refNode) {
+        if (this.firstChild === refNode) {
+            this.firstChild = refNode.nextSibling;
+        }
+        if (this.lastChild === refNode) {
+            this.lastChild = refNode.previousSibling;
+        }
+        if (refNode.previousSibling) {
+            refNode.previousSibling.nextSibling = refNode.nextSibling;
+        }
+        if (refNode.nextSibling) {
+            refNode.nextSibling.previousSibling = refNode.previousSibling;
+        }
+        refNode.parentNode = null;
+        refNode.nextSibling = null;
+        refNode.previousSibling = null;
+    };
+    Node.prototype.replaceChild = function (newChild, oldChild) {
+        nodeInsertBefore.call(this, newChild, oldChild);
+        nodeRemoveChild.call(this, oldChild);
+        return oldChild;
+    };
+    Node.prototype.addEventListener = function () {
+    };
+    Node.prototype.removeEventListner = function () {
+    };
+    Node.ELEMENT_NODE = 1;
+    Node.ATTRIBUTE_NODE = 2;
+    Node.TEXT_NODE = 3;
+    Node.CDATA_SECTION_NODE = 4;
+    Node.ENTITY_REFERENCE_NODE = 5;
+    Node.ENTITY_NODE = 6;
+    Node.PROCESSING_INSTRUCTION_NODE = 7;
+    Node.COMMENT_NODE = 8;
+    Node.DOCUMENT_NODE = 9;
+    Node.DOCUMENT_TYPE_NODE = 10;
+    Node.DOCUMENT_FRAGMENT_NODE = 11;
+    Node.NOTATION_NODE = 12;
+    function ChildNodes(node) {
+        this.node = node;
+    }
+    ChildNodes.prototype.item = function (index) {
+        var child = this.node.firstChild;
+        for (var i = 0; child && index !== i; i++) {
+            child = child.nextSibling;
+        }
+        return child;
+    };
+    module.exports = Node;
+});
 /*can-simple-dom@0.2.23#simple-dom/document/element*/
-define("can-simple-dom@0.2.23#simple-dom/document/element",["exports","module","./node"],function(t,e,r){"use strict";function n(t){return t&&t.__esModule?t:{"default":t}}function o(t,e){t=t.toUpperCase(),this.nodeConstructor(1,t,null,e),this.style=new i(this),this.attributes=[],this.tagName=t}function i(t){this.__node=t}var s=n(r),u={"class":function(t,e){t._className=e}};o.prototype=Object.create(s["default"].prototype),o.prototype.constructor=o,o.prototype.nodeConstructor=s["default"],o.prototype._cloneNode=function(){var t=this.ownerDocument.createElement(this.tagName);return t.attributes=this.attributes.map(function(t){return{name:t.name,value:t.value,specified:t.specified}}),t},o.prototype.getAttribute=function(t){for(var e,r=this.attributes,n=t.toLowerCase(),o=0,i=r.length;i>o;o++)if(e=r[o],e.name===n)return e.value;return null},o.prototype.setAttribute=function(){return this._setAttribute.apply(this,arguments)},o.prototype._setAttribute=function(t,e){for(var r,n=this.attributes,o=t.toLowerCase(),i=0,s=n.length;s>i;i++)if(r=n[i],r.name===o)return void(r.value=e);n.push({name:o,value:e,specified:!0}),n[o]=e;var a=u[o];a&&a(this,e)},o.prototype.removeAttribute=function(t){for(var e=this.attributes,r=0,n=e.length;n>r;r++){var o=e[r];if(o.name===t)return e.splice(r,1),void delete e[t]}},o.prototype.getElementsByTagName=function(t){t=t.toUpperCase();for(var e=[],r=this.firstChild;r;)r.nodeType===s["default"].ELEMENT_NODE&&((r.nodeName===t||"*"===t)&&e.push(r),e.push.apply(e,r.getElementsByTagName(t))),r=r.nextSibling;return e},o.prototype.contains=function(t){for(t=t.parentNode;t;){if(t===this)return!0;t=t.parentNode}return!1},o.prototype.getElementById=function(t){for(var e,r=this.firstChild;r;){if(r.attributes&&r.attributes.length)for(var n,o=0,i=r.attributes.length;i>o;o++)if(n=r.attributes[o],"id"===n.name&&n.value===t)return r;if(r.getElementById&&(e=r.getElementById(t)))return e;r=r.nextSibling}},Object.defineProperty&&(Object.defineProperty(o.prototype,"className",{get:function(){return this._className},set:function(t){this._setAttribute("class",t),this._className=t}}),Object.defineProperty(i.prototype,"cssText",{get:function(){return this.__node.getAttribute("style")||""},set:function(t){this.__node._setAttribute("style",t)}})),e.exports=o});
+define('can-simple-dom@0.2.23#simple-dom/document/element', [
+    'exports',
+    'module',
+    './node'
+], function (exports, module, _node) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_node);
+    var attrSpecial = {
+        'class': function _class(element, value) {
+            element._className = value;
+        }
+    };
+    function Element(tagName, ownerDocument) {
+        tagName = tagName.toUpperCase();
+        this.nodeConstructor(1, tagName, null, ownerDocument);
+        this.style = new Style(this);
+        this.attributes = [];
+        this.tagName = tagName;
+    }
+    Element.prototype = Object.create(_Node['default'].prototype);
+    Element.prototype.constructor = Element;
+    Element.prototype.nodeConstructor = _Node['default'];
+    Element.prototype._cloneNode = function () {
+        var node = this.ownerDocument.createElement(this.tagName);
+        node.attributes = this.attributes.map(function (attr) {
+            return {
+                name: attr.name,
+                value: attr.value,
+                specified: attr.specified
+            };
+        });
+        return node;
+    };
+    Element.prototype.getAttribute = function (_name) {
+        var attributes = this.attributes;
+        var name = _name.toLowerCase();
+        var attr;
+        for (var i = 0, l = attributes.length; i < l; i++) {
+            attr = attributes[i];
+            if (attr.name === name) {
+                return attr.value;
+            }
+        }
+        return null;
+    };
+    Element.prototype.setAttribute = function () {
+        return this._setAttribute.apply(this, arguments);
+    };
+    Element.prototype._setAttribute = function (_name, value) {
+        var attributes = this.attributes;
+        var name = _name.toLowerCase();
+        var attr;
+        for (var i = 0, l = attributes.length; i < l; i++) {
+            attr = attributes[i];
+            if (attr.name === name) {
+                attr.value = value;
+                return;
+            }
+        }
+        attributes.push({
+            name: name,
+            value: value,
+            specified: true
+        });
+        attributes[name] = value;
+        var special = attrSpecial[name];
+        if (special) {
+            special(this, value);
+        }
+    };
+    Element.prototype.removeAttribute = function (name) {
+        var attributes = this.attributes;
+        for (var i = 0, l = attributes.length; i < l; i++) {
+            var attr = attributes[i];
+            if (attr.name === name) {
+                attributes.splice(i, 1);
+                delete attributes[name];
+                return;
+            }
+        }
+    };
+    Element.prototype.getElementsByTagName = function (name) {
+        name = name.toUpperCase();
+        var elements = [];
+        var cur = this.firstChild;
+        while (cur) {
+            if (cur.nodeType === _Node['default'].ELEMENT_NODE) {
+                if (cur.nodeName === name || name === '*') {
+                    elements.push(cur);
+                }
+                elements.push.apply(elements, cur.getElementsByTagName(name));
+            }
+            cur = cur.nextSibling;
+        }
+        return elements;
+    };
+    Element.prototype.contains = function (child) {
+        child = child.parentNode;
+        while (child) {
+            if (child === this) {
+                return true;
+            }
+            child = child.parentNode;
+        }
+        return false;
+    };
+    Element.prototype.getElementById = function (id) {
+        var cur = this.firstChild, child;
+        while (cur) {
+            if (cur.attributes && cur.attributes.length) {
+                var attr;
+                for (var i = 0, len = cur.attributes.length; i < len; i++) {
+                    attr = cur.attributes[i];
+                    if (attr.name === 'id' && attr.value === id) {
+                        return cur;
+                    }
+                }
+            }
+            if (cur.getElementById) {
+                child = cur.getElementById(id);
+                if (child) {
+                    return child;
+                }
+            }
+            cur = cur.nextSibling;
+        }
+    };
+    function Style(node) {
+        this.__node = node;
+    }
+    if (Object.defineProperty) {
+        Object.defineProperty(Element.prototype, 'className', {
+            get: function get() {
+                return this._className;
+            },
+            set: function set(val) {
+                this._setAttribute('class', val);
+                this._className = val;
+            }
+        });
+        Object.defineProperty(Style.prototype, 'cssText', {
+            get: function get() {
+                return this.__node.getAttribute('style') || '';
+            },
+            set: function set(val) {
+                this.__node._setAttribute('style', val);
+            }
+        });
+    }
+    module.exports = Element;
+});
 /*can-simple-dom@0.2.23#simple-dom/document/text*/
-define("can-simple-dom@0.2.23#simple-dom/document/text",["exports","module","./node"],function(t,e,o){"use strict";function n(t){return t&&t.__esModule?t:{"default":t}}function r(t,e){this.nodeConstructor(3,"#text",t,e)}var u=n(o);r.prototype._cloneNode=function(){return this.ownerDocument.createTextNode(this.nodeValue)},r.prototype=Object.create(u["default"].prototype),r.prototype.constructor=r,r.prototype.nodeConstructor=u["default"],e.exports=r});
+define('can-simple-dom@0.2.23#simple-dom/document/text', [
+    'exports',
+    'module',
+    './node'
+], function (exports, module, _node) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_node);
+    function Text(text, ownerDocument) {
+        this.nodeConstructor(3, '#text', text, ownerDocument);
+    }
+    Text.prototype._cloneNode = function () {
+        return this.ownerDocument.createTextNode(this.nodeValue);
+    };
+    Text.prototype = Object.create(_Node['default'].prototype);
+    Text.prototype.constructor = Text;
+    Text.prototype.nodeConstructor = _Node['default'];
+    module.exports = Text;
+});
 /*can-simple-dom@0.2.23#simple-dom/document/comment*/
-define("can-simple-dom@0.2.23#simple-dom/document/comment",["exports","module","./node"],function(t,e,o){"use strict";function n(t){return t&&t.__esModule?t:{"default":t}}function r(t,e){this.nodeConstructor(8,"#comment",t,e)}var c=n(o);r.prototype._cloneNode=function(){return this.ownerDocument.createComment(this.nodeValue)},r.prototype=Object.create(c["default"].prototype),r.prototype.constructor=r,r.prototype.nodeConstructor=c["default"],e.exports=r});
+define('can-simple-dom@0.2.23#simple-dom/document/comment', [
+    'exports',
+    'module',
+    './node'
+], function (exports, module, _node) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_node);
+    function Comment(text, ownerDocument) {
+        this.nodeConstructor(8, '#comment', text, ownerDocument);
+    }
+    Comment.prototype._cloneNode = function () {
+        return this.ownerDocument.createComment(this.nodeValue);
+    };
+    Comment.prototype = Object.create(_Node['default'].prototype);
+    Comment.prototype.constructor = Comment;
+    Comment.prototype.nodeConstructor = _Node['default'];
+    module.exports = Comment;
+});
 /*can-simple-dom@0.2.23#simple-dom/document/document-fragment*/
-define("can-simple-dom@0.2.23#simple-dom/document/document-fragment",["exports","module","./node"],function(t,e,o){"use strict";function n(t){return t&&t.__esModule?t:{"default":t}}function r(t){this.nodeConstructor(11,"#document-fragment",null,t)}var u=n(o);r.prototype._cloneNode=function(){return this.ownerDocument.createDocumentFragment()},r.prototype=Object.create(u["default"].prototype),r.prototype.constructor=r,r.prototype.nodeConstructor=u["default"],e.exports=r});
+define('can-simple-dom@0.2.23#simple-dom/document/document-fragment', [
+    'exports',
+    'module',
+    './node'
+], function (exports, module, _node) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_node);
+    function DocumentFragment(ownerDocument) {
+        this.nodeConstructor(11, '#document-fragment', null, ownerDocument);
+    }
+    DocumentFragment.prototype._cloneNode = function () {
+        return this.ownerDocument.createDocumentFragment();
+    };
+    DocumentFragment.prototype = Object.create(_Node['default'].prototype);
+    DocumentFragment.prototype.constructor = DocumentFragment;
+    DocumentFragment.prototype.nodeConstructor = _Node['default'];
+    module.exports = DocumentFragment;
+});
 /*micro-location@0.1.5#lib/micro-location*/
-function Location(){this.init.apply(this,arguments)}Location.prototype={init:function(protocol,host,hostname,port,pathname,search,hash){if(this.protocol=protocol,this.host=host,this.hostname=hostname,this.port=port||"",this.pathname=pathname||"",this.search=search||"",this.hash=hash||"",protocol)with(this)this.href=protocol+"//"+host+pathname+search+hash;else if(host)with(this)this.href="//"+host+pathname+search+hash;else with(this)this.href=pathname+search+hash},params:function(t){if(!this._params){for(var e={},a=this.search.substring(1).split(/[;&]/),o=0,s=a.length;s>o;o++)if(a[o]){var h=a[o].split(/=/),i=decodeURIComponent(h[0].replace(/\+/g,"%20")),n=decodeURIComponent(h[1].replace(/\+/g,"%20"));e[i]||(e[i]=[]),e[i].push(n)}this._params=e}switch(typeof t){case"undefined":return this._params;case"object":return this.build(t)}return this._params[t]?this._params[t][0]:null},build:function(params){params||(params=this._params);var ret=new Location,_search=this.search;if(params){var search=[];for(var key in params)if(params.hasOwnProperty(key)){var val=params[key];switch(typeof val){case"object":for(var i=0,len=val.length;len>i;i++)search.push(encodeURIComponent(key)+"="+encodeURIComponent(val[i]));break;default:search.push(encodeURIComponent(key)+"="+encodeURIComponent(val))}}_search="?"+search.join("&")}with(this)ret.init.apply(ret,[protocol,host,hostname,port,pathname,_search,hash]);return ret}},Location.regexp=new RegExp("^(?:(https?:)//(([^:/]+)(:[^/]+)?))?([^#?]*)(\\?[^#]*)?(#.*)?$"),Location.parse=function(t){var e=String(t).match(this.regexp),a=new Location;return a.init.apply(a,e.slice(1)),a},function(t,e){"object"==typeof module&&module.exports?module.exports={Location:e()}:"function"==typeof define&&define.amd?define("micro-location@0.1.5#lib/micro-location",[],function(){return{Location:e()}}):t.Location=e()}(this,function(){return Location});
+function Location() {
+    this.init.apply(this, arguments);
+}
+Location.prototype = {
+    init: function (protocol, host, hostname, port, pathname, search, hash) {
+        this.protocol = protocol;
+        this.host = host;
+        this.hostname = hostname;
+        this.port = port || '';
+        this.pathname = pathname || '';
+        this.search = search || '';
+        this.hash = hash || '';
+        if (protocol) {
+            with (this)
+                this.href = protocol + '//' + host + pathname + search + hash;
+        } else if (host) {
+            with (this)
+                this.href = '//' + host + pathname + search + hash;
+        } else {
+            with (this)
+                this.href = pathname + search + hash;
+        }
+    },
+    params: function (name) {
+        if (!this._params) {
+            var params = {};
+            var pairs = this.search.substring(1).split(/[;&]/);
+            for (var i = 0, len = pairs.length; i < len; i++) {
+                if (!pairs[i])
+                    continue;
+                var pair = pairs[i].split(/=/);
+                var key = decodeURIComponent(pair[0].replace(/\+/g, '%20'));
+                var val = decodeURIComponent(pair[1].replace(/\+/g, '%20'));
+                if (!params[key])
+                    params[key] = [];
+                params[key].push(val);
+            }
+            this._params = params;
+        }
+        switch (typeof name) {
+        case 'undefined':
+            return this._params;
+        case 'object':
+            return this.build(name);
+        }
+        return this._params[name] ? this._params[name][0] : null;
+    },
+    build: function (params) {
+        if (!params)
+            params = this._params;
+        var ret = new Location();
+        var _search = this.search;
+        if (params) {
+            var search = [];
+            for (var key in params)
+                if (params.hasOwnProperty(key)) {
+                    var val = params[key];
+                    switch (typeof val) {
+                    case 'object':
+                        for (var i = 0, len = val.length; i < len; i++) {
+                            search.push(encodeURIComponent(key) + '=' + encodeURIComponent(val[i]));
+                        }
+                        break;
+                    default:
+                        search.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+                    }
+                }
+            _search = '?' + search.join('&');
+        }
+        with (this)
+            ret.init.apply(ret, [
+                protocol,
+                host,
+                hostname,
+                port,
+                pathname,
+                _search,
+                hash
+            ]);
+        return ret;
+    }
+};
+Location.regexp = new RegExp('^(?:(https?:)//(([^:/]+)(:[^/]+)?))?([^#?]*)(\\?[^#]*)?(#.*)?$');
+Location.parse = function (string) {
+    var matched = String(string).match(this.regexp);
+    var ret = new Location();
+    ret.init.apply(ret, matched.slice(1));
+    return ret;
+};
+(function (root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = { Location: factory() };
+    } else if (typeof define === 'function' && define.amd) {
+        define('micro-location@0.1.5#lib/micro-location', [], function () {
+            return { Location: factory() };
+        });
+    } else {
+        root.Location = factory();
+    }
+}(this, function () {
+    return Location;
+}));
 /*can-simple-dom@0.2.23#simple-dom/extend*/
-define("can-simple-dom@0.2.23#simple-dom/extend",["exports","module"],function(e,n){"use strict";n.exports=function(e,n){for(var o in n)e[o]=n[o];return e}});
+define('can-simple-dom@0.2.23#simple-dom/extend', [
+    'exports',
+    'module'
+], function (exports, module) {
+    'use strict';
+    module.exports = function (a, b) {
+        for (var p in b) {
+            a[p] = b[p];
+        }
+        return a;
+    };
+    ;
+});
 /*can-simple-dom@0.2.23#simple-dom/document/anchor-element*/
-define("can-simple-dom@0.2.23#simple-dom/document/anchor-element",["exports","module","./element","micro-location","../extend"],function(t,e,o,r,n){"use strict";function u(t){return t&&t.__esModule?t:{"default":t}}function p(t,e){this.elementConstructor(t,e),l["default"](this,c.parse(""))}var s=u(o),a=u(r),l=u(n),c=a["default"].Location||a["default"];p.prototype=Object.create(s["default"].prototype),p.prototype.constructor=p,p.prototype.elementConstructor=s["default"],p.prototype.setAttribute=function(t,e){s["default"].prototype.setAttribute.apply(this,arguments),"href"===t.toLowerCase()&&l["default"](this,c.parse(e))},e.exports=p});
+define('can-simple-dom@0.2.23#simple-dom/document/anchor-element', [
+    'exports',
+    'module',
+    './element',
+    'micro-location',
+    '../extend'
+], function (exports, module, _element, _microLocation, _extend) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Element = _interopRequireDefault(_element);
+    var _microLocation2 = _interopRequireDefault(_microLocation);
+    var _extend2 = _interopRequireDefault(_extend);
+    var Location = _microLocation2['default'].Location || _microLocation2['default'];
+    function AnchorElement(tagName, ownerDocument) {
+        this.elementConstructor(tagName, ownerDocument);
+        (0, _extend2['default'])(this, Location.parse(''));
+    }
+    AnchorElement.prototype = Object.create(_Element['default'].prototype);
+    AnchorElement.prototype.constructor = AnchorElement;
+    AnchorElement.prototype.elementConstructor = _Element['default'];
+    AnchorElement.prototype.setAttribute = function (_name, value) {
+        _Element['default'].prototype.setAttribute.apply(this, arguments);
+        if (_name.toLowerCase() === 'href') {
+            (0, _extend2['default'])(this, Location.parse(value));
+        }
+    };
+    module.exports = AnchorElement;
+});
 /*can-simple-dom@0.2.23#simple-dom/document*/
-define("can-simple-dom@0.2.23#simple-dom/document",["exports","module","./document/node","./document/element","./document/text","./document/comment","./document/document-fragment","./document/anchor-element"],function(e,t,n,o,r,u,d,p){"use strict";function c(e){return e&&e.__esModule?e:{"default":e}}function i(){this.nodeConstructor(9,"#document",null,this),this.documentElement=new a["default"]("html",this),this.body=new a["default"]("body",this),this.documentElement.appendChild(this.body),this.appendChild(this.documentElement)}var m=c(n),a=c(o),s=c(r),l=c(u),f=c(d),h=c(p);i.prototype=Object.create(m["default"].prototype),i.prototype.constructor=i,i.prototype.nodeConstructor=m["default"];var y={a:h["default"]};i.prototype.createElement=function(e){var t=y[e.toLowerCase()];return t?new t(e,this):new a["default"](e,this)},i.prototype.createTextNode=function(e){return new s["default"](e,this)},i.prototype.createComment=function(e){return new l["default"](e,this)},i.prototype.createDocumentFragment=function(){return new f["default"](this)},i.prototype.getElementsByTagName=function(e){e=e.toUpperCase();for(var t=[],n=this.firstChild;n;)n.nodeType===m["default"].ELEMENT_NODE&&((n.nodeName===e||"*"===e)&&t.push(n),t.push.apply(t,n.getElementsByTagName(e))),n=n.nextSibling;return t},i.prototype.getElementById=function(e){return a["default"].prototype.getElementById.apply(this.documentElement,arguments)},Object.defineProperty&&Object.defineProperty(i.prototype,"currentScript",{get:function(){var e=this.getElementsByTagName("script"),t=e[e.length-1];return t||(t=this.createElement("script")),t}}),t.exports=i});
+define('can-simple-dom@0.2.23#simple-dom/document', [
+    'exports',
+    'module',
+    './document/node',
+    './document/element',
+    './document/text',
+    './document/comment',
+    './document/document-fragment',
+    './document/anchor-element'
+], function (exports, module, _documentNode, _documentElement, _documentText, _documentComment, _documentDocumentFragment, _documentAnchorElement) {
+    'use strict';
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_documentNode);
+    var _Element = _interopRequireDefault(_documentElement);
+    var _Text = _interopRequireDefault(_documentText);
+    var _Comment = _interopRequireDefault(_documentComment);
+    var _DocumentFragment = _interopRequireDefault(_documentDocumentFragment);
+    var _AnchorElement = _interopRequireDefault(_documentAnchorElement);
+    function Document() {
+        this.nodeConstructor(9, '#document', null, this);
+        this.documentElement = new _Element['default']('html', this);
+        this.body = new _Element['default']('body', this);
+        this.documentElement.appendChild(this.body);
+        this.appendChild(this.documentElement);
+    }
+    Document.prototype = Object.create(_Node['default'].prototype);
+    Document.prototype.constructor = Document;
+    Document.prototype.nodeConstructor = _Node['default'];
+    var specialElements = { 'a': _AnchorElement['default'] };
+    Document.prototype.createElement = function (tagName) {
+        var Special = specialElements[tagName.toLowerCase()];
+        if (Special) {
+            return new Special(tagName, this);
+        }
+        return new _Element['default'](tagName, this);
+    };
+    Document.prototype.createTextNode = function (text) {
+        return new _Text['default'](text, this);
+    };
+    Document.prototype.createComment = function (text) {
+        return new _Comment['default'](text, this);
+    };
+    Document.prototype.createDocumentFragment = function () {
+        return new _DocumentFragment['default'](this);
+    };
+    Document.prototype.getElementsByTagName = function (name) {
+        name = name.toUpperCase();
+        var elements = [];
+        var cur = this.firstChild;
+        while (cur) {
+            if (cur.nodeType === _Node['default'].ELEMENT_NODE) {
+                if (cur.nodeName === name || name === '*') {
+                    elements.push(cur);
+                }
+                elements.push.apply(elements, cur.getElementsByTagName(name));
+            }
+            cur = cur.nextSibling;
+        }
+        return elements;
+    };
+    Document.prototype.getElementById = function (id) {
+        return _Element['default'].prototype.getElementById.apply(this.documentElement, arguments);
+    };
+    if (Object.defineProperty) {
+        Object.defineProperty(Document.prototype, 'currentScript', {
+            get: function get() {
+                var scripts = this.getElementsByTagName('script');
+                var first = scripts[scripts.length - 1];
+                if (!first) {
+                    first = this.createElement('script');
+                }
+                return first;
+            }
+        });
+    }
+    module.exports = Document;
+});
 /*can-simple-dom@0.2.23#simple-dom/html-parser*/
-define("can-simple-dom@0.2.23#simple-dom/html-parser",["exports","module"],function(t,e){"use strict";function a(t,e,a){this.tokenize=t,this.document=e,this.voidMap=a,this.parentStack=[]}a.prototype.isVoid=function(t){return this.voidMap[t.nodeName]===!0},a.prototype.pushElement=function(t){for(var e=this.document.createElement(t.tagName),a=0;a<t.attributes.length;a++){var n=t.attributes[a];e.setAttribute(n[0],n[1])}return this.isVoid(e)?this.appendChild(e):void this.parentStack.push(e)},a.prototype.popElement=function(t){var e=this.parentStack.pop();if(e.nodeName!==t.tagName.toUpperCase())throw new Error("unbalanced tag");this.appendChild(e)},a.prototype.appendText=function(t){var e=this.document.createTextNode(t.chars);this.appendChild(e)},a.prototype.appendComment=function(t){var e=this.document.createComment(t.chars);this.appendChild(e)},a.prototype.appendChild=function(t){var e=this.parentStack[this.parentStack.length-1];e.appendChild(t)},a.prototype.parse=function(t){var e=this.document.createDocumentFragment();this.parentStack.push(e);for(var a=this.tokenize(t),n=0,p=a.length;p>n;n++){var i=a[n];switch(i.type){case"StartTag":this.pushElement(i);break;case"EndTag":this.popElement(i);break;case"Chars":this.appendText(i);break;case"Comment":this.appendComment(i)}}return this.parentStack.pop()},e.exports=a});
+define('can-simple-dom@0.2.23#simple-dom/html-parser', [
+    'exports',
+    'module'
+], function (exports, module) {
+    'use strict';
+    function HTMLParser(tokenize, document, voidMap) {
+        this.tokenize = tokenize;
+        this.document = document;
+        this.voidMap = voidMap;
+        this.parentStack = [];
+    }
+    HTMLParser.prototype.isVoid = function (element) {
+        return this.voidMap[element.nodeName] === true;
+    };
+    HTMLParser.prototype.pushElement = function (token) {
+        var el = this.document.createElement(token.tagName);
+        for (var i = 0; i < token.attributes.length; i++) {
+            var attr = token.attributes[i];
+            el.setAttribute(attr[0], attr[1]);
+        }
+        if (this.isVoid(el)) {
+            return this.appendChild(el);
+        }
+        this.parentStack.push(el);
+    };
+    HTMLParser.prototype.popElement = function (token) {
+        var el = this.parentStack.pop();
+        if (el.nodeName !== token.tagName.toUpperCase()) {
+            throw new Error('unbalanced tag');
+        }
+        this.appendChild(el);
+    };
+    HTMLParser.prototype.appendText = function (token) {
+        var text = this.document.createTextNode(token.chars);
+        this.appendChild(text);
+    };
+    HTMLParser.prototype.appendComment = function (token) {
+        var comment = this.document.createComment(token.chars);
+        this.appendChild(comment);
+    };
+    HTMLParser.prototype.appendChild = function (node) {
+        var parentNode = this.parentStack[this.parentStack.length - 1];
+        parentNode.appendChild(node);
+    };
+    HTMLParser.prototype.parse = function (html) {
+        var fragment = this.document.createDocumentFragment();
+        this.parentStack.push(fragment);
+        var tokens = this.tokenize(html);
+        for (var i = 0, l = tokens.length; i < l; i++) {
+            var token = tokens[i];
+            switch (token.type) {
+            case 'StartTag':
+                this.pushElement(token);
+                break;
+            case 'EndTag':
+                this.popElement(token);
+                break;
+            case 'Chars':
+                this.appendText(token);
+                break;
+            case 'Comment':
+                this.appendComment(token);
+                break;
+            }
+        }
+        return this.parentStack.pop();
+    };
+    module.exports = HTMLParser;
+});
 /*can-simple-dom@0.2.23#simple-dom/html-serializer*/
-define("can-simple-dom@0.2.23#simple-dom/html-serializer",["exports","module"],function(e,t){"use strict";function n(e){this.voidMap=e}n.prototype.openTag=function(e){return"<"+e.nodeName.toLowerCase()+this.attributes(e.attributes)+">"},n.prototype.closeTag=function(e){return"</"+e.nodeName.toLowerCase()+">"},n.prototype.isVoid=function(e){return this.voidMap[e.nodeName]===!0},n.prototype.attributes=function(e){for(var t="",n=0,o=e.length;o>n;n++)t+=this.attr(e[n]);return t},n.prototype.escapeAttrValue=function(e){return e.replace(/[&"]/g,function(e){switch(e){case"&":return"&amp;";case'"':return"&quot;"}})},n.prototype.attr=function(e){return e.specified?e.value?" "+e.name+'="'+this.escapeAttrValue(e.value)+'"':" "+e.name:""},n.prototype.escapeText=function(e){return e.replace(/[&<>]/g,function(e){switch(e){case"&":return"&amp;";case"<":return"&lt;";case">":return"&gt;"}})},n.prototype.text=function(e){var t=e.parentNode;return!t||"STYLE"!==t.nodeName&&"SCRIPT"!==t.nodeName?this.escapeText(e.nodeValue):e.nodeValue},n.prototype.comment=function(e){return"<!--"+e.nodeValue+"-->"},n.prototype.serialize=function(e){var t,n="";switch(e.nodeType){case 1:n+=this.openTag(e);break;case 3:n+=this.text(e);break;case 8:n+=this.comment(e)}return t=e.firstChild,t?n+=this.serialize(t):e.textContent&&(n+=e.textContent),1!==e.nodeType||this.isVoid(e)||(n+=this.closeTag(e)),t=e.nextSibling,t&&(n+=this.serialize(t)),n},t.exports=n});
+define('can-simple-dom@0.2.23#simple-dom/html-serializer', [
+    'exports',
+    'module'
+], function (exports, module) {
+    'use strict';
+    function HTMLSerializer(voidMap) {
+        this.voidMap = voidMap;
+    }
+    HTMLSerializer.prototype.openTag = function (element) {
+        return '<' + element.nodeName.toLowerCase() + this.attributes(element.attributes) + '>';
+    };
+    HTMLSerializer.prototype.closeTag = function (element) {
+        return '</' + element.nodeName.toLowerCase() + '>';
+    };
+    HTMLSerializer.prototype.isVoid = function (element) {
+        return this.voidMap[element.nodeName] === true;
+    };
+    HTMLSerializer.prototype.attributes = function (namedNodeMap) {
+        var buffer = '';
+        for (var i = 0, l = namedNodeMap.length; i < l; i++) {
+            buffer += this.attr(namedNodeMap[i]);
+        }
+        return buffer;
+    };
+    HTMLSerializer.prototype.escapeAttrValue = function (attrValue) {
+        return attrValue.replace(/[&"]/g, function (match) {
+            switch (match) {
+            case '&':
+                return '&amp;';
+            case '"':
+                return '&quot;';
+            }
+        });
+    };
+    HTMLSerializer.prototype.attr = function (attr) {
+        if (!attr.specified) {
+            return '';
+        }
+        if (attr.value) {
+            return ' ' + attr.name + '="' + this.escapeAttrValue(attr.value) + '"';
+        }
+        return ' ' + attr.name;
+    };
+    HTMLSerializer.prototype.escapeText = function (textNodeValue) {
+        return textNodeValue.replace(/[&<>]/g, function (match) {
+            switch (match) {
+            case '&':
+                return '&amp;';
+            case '<':
+                return '&lt;';
+            case '>':
+                return '&gt;';
+            }
+        });
+    };
+    HTMLSerializer.prototype.text = function (text) {
+        var parentNode = text.parentNode;
+        if (parentNode && (parentNode.nodeName === 'STYLE' || parentNode.nodeName === 'SCRIPT')) {
+            return text.nodeValue;
+        }
+        return this.escapeText(text.nodeValue);
+    };
+    HTMLSerializer.prototype.comment = function (comment) {
+        return '<!--' + comment.nodeValue + '-->';
+    };
+    HTMLSerializer.prototype.serialize = function (node) {
+        var buffer = '';
+        var next;
+        switch (node.nodeType) {
+        case 1:
+            buffer += this.openTag(node);
+            break;
+        case 3:
+            buffer += this.text(node);
+            break;
+        case 8:
+            buffer += this.comment(node);
+            break;
+        default:
+            break;
+        }
+        next = node.firstChild;
+        if (next) {
+            buffer += this.serialize(next);
+        } else if (node.textContent) {
+            buffer += node.textContent;
+        }
+        if (node.nodeType === 1 && !this.isVoid(node)) {
+            buffer += this.closeTag(node);
+        }
+        next = node.nextSibling;
+        if (next) {
+            buffer += this.serialize(next);
+        }
+        return buffer;
+    };
+    module.exports = HTMLSerializer;
+});
 /*can-simple-dom@0.2.23#simple-dom/void-map*/
-define("can-simple-dom@0.2.23#simple-dom/void-map",["exports","module"],function(e,A){"use strict";A.exports={AREA:!0,BASE:!0,BR:!0,COL:!0,COMMAND:!0,EMBED:!0,HR:!0,IMG:!0,INPUT:!0,KEYGEN:!0,LINK:!0,META:!0,PARAM:!0,SOURCE:!0,TRACK:!0,WBR:!0}});
+define('can-simple-dom@0.2.23#simple-dom/void-map', [
+    'exports',
+    'module'
+], function (exports, module) {
+    'use strict';
+    module.exports = {
+        AREA: true,
+        BASE: true,
+        BR: true,
+        COL: true,
+        COMMAND: true,
+        EMBED: true,
+        HR: true,
+        IMG: true,
+        INPUT: true,
+        KEYGEN: true,
+        LINK: true,
+        META: true,
+        PARAM: true,
+        SOURCE: true,
+        TRACK: true,
+        WBR: true
+    };
+});
 /*can-simple-dom@0.2.23#simple-dom/dom*/
-define("can-simple-dom@0.2.23#simple-dom/dom",["exports","./document/node","./document/element","./document","./html-parser","./html-serializer","./void-map"],function(e,t,d,l,u,o,a){"use strict";function n(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(e,"__esModule",{value:!0});var r=n(t),m=n(d),i=n(l),f=n(u),s=n(o),c=n(a);e.Node=r["default"],e.Element=m["default"],e.Document=i["default"],e.HTMLParser=f["default"],e.HTMLSerializer=s["default"],e.voidMap=c["default"]});
+define('can-simple-dom@0.2.23#simple-dom/dom', [
+    'exports',
+    './document/node',
+    './document/element',
+    './document',
+    './html-parser',
+    './html-serializer',
+    './void-map'
+], function (exports, _documentNode, _documentElement, _document, _htmlParser, _htmlSerializer, _voidMap) {
+    'use strict';
+    Object.defineProperty(exports, '__esModule', { value: true });
+    function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { 'default': obj };
+    }
+    var _Node = _interopRequireDefault(_documentNode);
+    var _Element = _interopRequireDefault(_documentElement);
+    var _Document = _interopRequireDefault(_document);
+    var _HTMLParser = _interopRequireDefault(_htmlParser);
+    var _HTMLSerializer = _interopRequireDefault(_htmlSerializer);
+    var _voidMap2 = _interopRequireDefault(_voidMap);
+    exports.Node = _Node['default'];
+    exports.Element = _Element['default'];
+    exports.Document = _Document['default'];
+    exports.HTMLParser = _HTMLParser['default'];
+    exports.HTMLSerializer = _HTMLSerializer['default'];
+    exports.voidMap = _voidMap2['default'];
+});
 /*can-simple-dom@0.2.23#simple-dom*/
-define("can-simple-dom@0.2.23#simple-dom",["exports","./simple-dom/dom"],function(e,r){"use strict";function t(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function o(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var n=t[o],i=Object.getOwnPropertyDescriptor(r,n);i&&i.configurable&&void 0===e[n]&&Object.defineProperty(e,n,i)}return e}Object.defineProperty(e,"__esModule",{value:!0}),"undefined"!=typeof window&&(window.SimpleDOM=r),o(e,t(r))});
+define('can-simple-dom@0.2.23#simple-dom', [
+    'exports',
+    './simple-dom/dom'
+], function (exports, _simpleDomDom) {
+    'use strict';
+    Object.defineProperty(exports, '__esModule', { value: true });
+    function _interopRequireWildcard(obj) {
+        if (obj && obj.__esModule) {
+            return obj;
+        } else {
+            var newObj = {};
+            if (obj != null) {
+                for (var key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key))
+                        newObj[key] = obj[key];
+                }
+            }
+            newObj['default'] = obj;
+            return newObj;
+        }
+    }
+    function _defaults(obj, defaults) {
+        var keys = Object.getOwnPropertyNames(defaults);
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var value = Object.getOwnPropertyDescriptor(defaults, key);
+            if (value && value.configurable && obj[key] === undefined) {
+                Object.defineProperty(obj, key, value);
+            }
+        }
+        return obj;
+    }
+    if (typeof window !== 'undefined') {
+        window.SimpleDOM = _simpleDomDom;
+    }
+    _defaults(exports, _interopRequireWildcard(_simpleDomDom));
+});
 /*can@2.3.9#util/vdom/build_fragment/make_parser*/
-define("can@2.3.9#util/vdom/build_fragment/make_parser",["can/view/parser/parser","can-simple-dom/can-simple-dom"],function(t,n){return function(a){return new n.HTMLParser(function(n){var a,e,r=[];return t(n,{start:function(t,n){a={type:"StartTag",attributes:[],tagName:t}},end:function(t,n){r.push(a),a=void 0},close:function(t){r.push({type:"EndTag",tagName:t})},attrStart:function(t){e=[t,""],a.attributes.push(e)},attrEnd:function(t){},attrValue:function(t){e[1]+=t},chars:function(t){r.push({type:"Chars",chars:t})},comment:function(t){r.push({type:"Comment",chars:t})},special:function(t){},done:function(){}}),r},a,n.voidMap)}});
+define('can@2.3.9#util/vdom/build_fragment/make_parser', [
+    'can/view/parser/parser',
+    'can-simple-dom/can-simple-dom'
+], function (canParser, simpleDOM) {
+    return function (document) {
+        return new simpleDOM.HTMLParser(function (string) {
+            var tokens = [];
+            var currentTag, currentAttr;
+            canParser(string, {
+                start: function (tagName, unary) {
+                    currentTag = {
+                        type: 'StartTag',
+                        attributes: [],
+                        tagName: tagName
+                    };
+                },
+                end: function (tagName, unary) {
+                    tokens.push(currentTag);
+                    currentTag = undefined;
+                },
+                close: function (tagName) {
+                    tokens.push({
+                        type: 'EndTag',
+                        tagName: tagName
+                    });
+                },
+                attrStart: function (attrName) {
+                    currentAttr = [
+                        attrName,
+                        ''
+                    ];
+                    currentTag.attributes.push(currentAttr);
+                },
+                attrEnd: function (attrName) {
+                },
+                attrValue: function (value) {
+                    currentAttr[1] += value;
+                },
+                chars: function (value) {
+                    tokens.push({
+                        type: 'Chars',
+                        chars: value
+                    });
+                },
+                comment: function (value) {
+                    tokens.push({
+                        type: 'Comment',
+                        chars: value
+                    });
+                },
+                special: function (value) {
+                },
+                done: function () {
+                }
+            });
+            return tokens;
+        }, document, simpleDOM.voidMap);
+    };
+});
 /*can@2.3.9#util/vdom/vdom*/
-define("can@2.3.9#util/vdom/vdom",["can/util/can","can-simple-dom/can-simple-dom","./build_fragment/make_parser"],function(e,t,n){var i=new t.Document,r=new t.HTMLSerializer(t.voidMap),o=n(i);if(Object.defineProperty){var a=function(e){return{get:function(){return r.serialize(e?this:this.firstChild)},set:function(e){for(var t=this.firstChild;t;)this.removeChild(t),t=this.firstChild;if(""+e){var n;n="SCRIPT"===this.nodeName?i.createTextNode(""+e):o.parse(""+e),this.appendChild(n)}}}};Object.defineProperty(t.Element.prototype,"innerHTML",a()),Object.defineProperty(t.Element.prototype,"outerHTML",a(!0))}var s=e.global;s.document=i,s.window=s,s.addEventListener=function(){},s.removeEventListener=function(){},s.navigator={userAgent:"",platform:"",language:"",languages:[],plugins:[],onLine:!0},s.location={href:"",protocol:"",host:"",hostname:"",port:"",pathname:"",search:"",hash:""},s.history={pushState:e.k,replaceState:e.k}});
+define('can@2.3.9#util/vdom/vdom', [
+    'can/util/can',
+    'can-simple-dom/can-simple-dom',
+    './build_fragment/make_parser'
+], function (can, simpleDOM, makeParser) {
+    var document = new simpleDOM.Document();
+    var serializer = new simpleDOM.HTMLSerializer(simpleDOM.voidMap);
+    var parser = makeParser(document);
+    if (Object.defineProperty) {
+        var descriptor = function (outerHtml) {
+            return {
+                get: function () {
+                    return serializer.serialize(outerHtml ? this : this.firstChild);
+                },
+                set: function (html) {
+                    var cur = this.firstChild;
+                    while (cur) {
+                        this.removeChild(cur);
+                        cur = this.firstChild;
+                    }
+                    if ('' + html) {
+                        var frag;
+                        if (this.nodeName === 'SCRIPT') {
+                            frag = document.createTextNode('' + html);
+                        } else {
+                            frag = parser.parse('' + html);
+                        }
+                        this.appendChild(frag);
+                    }
+                }
+            };
+        };
+        Object.defineProperty(simpleDOM.Element.prototype, 'innerHTML', descriptor());
+        Object.defineProperty(simpleDOM.Element.prototype, 'outerHTML', descriptor(true));
+    }
+    var global = can.global;
+    global.document = document;
+    global.window = global;
+    global.addEventListener = function () {
+    };
+    global.removeEventListener = function () {
+    };
+    global.navigator = {
+        userAgent: '',
+        platform: '',
+        language: '',
+        languages: [],
+        plugins: [],
+        onLine: true
+    };
+    global.location = {
+        href: '',
+        protocol: '',
+        host: '',
+        hostname: '',
+        port: '',
+        pathname: '',
+        search: '',
+        hash: ''
+    };
+    global.history = {
+        pushState: can.k,
+        replaceState: can.k
+    };
+});
